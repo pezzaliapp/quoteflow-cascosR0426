@@ -10,3 +10,9 @@ dist/
 *.xls
 listino*
 prezzi*
+
+# Listini prezzi — MAI committare
+*.xlsx
+*.xls
+listino*
+prezzi*
