@@ -4,3 +4,9 @@ dist/
 .env.local
 *.log
 .DS_Store
+
+# Listini prezzi — MAI committare
+*.xlsx
+*.xls
+listino*
+prezzi*
