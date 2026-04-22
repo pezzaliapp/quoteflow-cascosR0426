@@ -83,22 +83,15 @@ const PDF_SCHEDE = {
   '13177':   { file: 'cascos senza pedana.pdf',  pages: [17, 18] },
   '13988S':  { file: 'cascos senza pedana.pdf',  pages: [19, 20] },
   // 4 COLONNE — Pedane piane (standard)
-  '13335':    { file: 'cascos 4 colonne.pdf', pages: [2, 3] },
   '13340':    { file: 'cascos 4 colonne.pdf', pages: [4, 5] },
-  '13353A':   { file: 'cascos 4 colonne.pdf', pages: [6, 7] },
   '13381':    { file: 'cascos 4 colonne.pdf', pages: [8, 9] },
-  '13355A':   { file: 'cascos 4 colonne.pdf', pages: [10, 11] },
   '13376':    { file: 'cascos 4 colonne.pdf', pages: [12, 13] },
-  '13376A':   { file: 'cascos 4 colonne.pdf', pages: [14, 15] },
   '13351FIR': { file: 'cascos 4 colonne.pdf', pages: [16, 17] },
   '13378':    { file: 'cascos 4 colonne.pdf', pages: [18, 19] },
   // 4 COLONNE — Pedane per assetto
-  '13337':    { file: 'cascos 4 colonne.pdf', pages: [21, 22] },
   '13442':    { file: 'cascos 4 colonne.pdf', pages: [23, 24] },
   '13380':    { file: 'cascos 4 colonne.pdf', pages: [25, 26] },
-  '13354A':   { file: 'cascos 4 colonne.pdf', pages: [27, 28] },
   '13377':    { file: 'cascos 4 colonne.pdf', pages: [29, 30] },
-  '13377ANY': { file: 'cascos 4 colonne.pdf', pages: [31, 32] },
   '13379':    { file: 'cascos 4 colonne.pdf', pages: [33, 34] },
   // 4 COLONNE — Pedane con sollevatore integrato
   '13370':    { file: 'cascos 4 colonne.pdf', pages: [36, 37] },
