@@ -3,7 +3,7 @@ import productsData from './data/products.json';
 import {
   ChevronRight, RotateCcw, FileText, ShoppingCart,
   MessageCircle, Copy, CheckCircle2, ArrowLeft, AlertCircle, Upload,
-  Package, Euro, Wrench, Ruler, Download, BookOpen
+  Package, Euro, Wrench, Ruler, Download, BookOpen, Plus, Trash2, Check
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -35,22 +35,15 @@ import * as XLSX from 'xlsx';
 //   p.17-18→ C5S Wagon    (13177)
 //   p.19-20→ C5.5S Wagon  (13988S)
 //
-// cascos 4 colonne.pdf (4 colonne, 23 modelli):
-//   p.2-3  → C430             (13335)
+// cascos 4 colonne.pdf (4 colonne, 16 modelli a listino):
 //   p.4-5  → C440             (13340)
-//   p.6-7  → C440 MOT ATL     (13353A)
 //   p.8-9  → C443             (13381)
-//   p.10-11→ C450 MOT ATL     (13355A)
 //   p.12-13→ C450 XL          (13376)
-//   p.14-15→ C450 XL MOT ATL  (13376A)
 //   p.16-17→ C450 TORO        (13351FIR)
 //   p.18-19→ C450+            (13378)
-//   p.21-22→ C432             (13337)
 //   p.23-24→ C442             (13442)
 //   p.25-26→ C445             (13380)
-//   p.27-28→ C455 MOT ATL     (13354A)
 //   p.29-30→ C455 XL          (13377)
-//   p.31-32→ C455 XL MOT ATL  (13377ANY)
 //   p.33-34→ C455+            (13379)
 //   p.36-37→ C443H            (13370)
 //   p.38-39→ C445H            (13359)
@@ -82,23 +75,20 @@ const PDF_SCHEDE = {
   '13998S':  { file: 'cascos senza pedana.pdf',  pages: [15, 16] },
   '13177':   { file: 'cascos senza pedana.pdf',  pages: [17, 18] },
   '13988S':  { file: 'cascos senza pedana.pdf',  pages: [19, 20] },
-  // 4 COLONNE — Pedane piane (standard)
+  // 4 COLONNE
   '13340':    { file: 'cascos 4 colonne.pdf', pages: [4, 5] },
   '13381':    { file: 'cascos 4 colonne.pdf', pages: [8, 9] },
   '13376':    { file: 'cascos 4 colonne.pdf', pages: [12, 13] },
   '13351FIR': { file: 'cascos 4 colonne.pdf', pages: [16, 17] },
   '13378':    { file: 'cascos 4 colonne.pdf', pages: [18, 19] },
-  // 4 COLONNE — Pedane per assetto
   '13442':    { file: 'cascos 4 colonne.pdf', pages: [23, 24] },
   '13380':    { file: 'cascos 4 colonne.pdf', pages: [25, 26] },
   '13377':    { file: 'cascos 4 colonne.pdf', pages: [29, 30] },
   '13379':    { file: 'cascos 4 colonne.pdf', pages: [33, 34] },
-  // 4 COLONNE — Pedane con sollevatore integrato
   '13370':    { file: 'cascos 4 colonne.pdf', pages: [36, 37] },
   '13359':    { file: 'cascos 4 colonne.pdf', pages: [38, 39] },
   '13371':    { file: 'cascos 4 colonne.pdf', pages: [40, 41] },
   '13367':    { file: 'cascos 4 colonne.pdf', pages: [42, 43] },
-  // 4 COLONNE — Industriale
   '13333':    { file: 'cascos 4 colonne.pdf', pages: [45, 46] },
   '13339':    { file: 'cascos 4 colonne.pdf', pages: [47, 48] },
   '13331':    { file: 'cascos 4 colonne.pdf', pages: [49, 50] },
@@ -200,8 +190,9 @@ function getBracciInfo(product) {
 function selectProducts(products, pavimentazione, veicolo, distanzaMm) {
   return products
     .filter(p => {
-      // Solo 2 colonne per questo flow
-      if (p.tipo_sollevatore && p.tipo_sollevatore !== '2_colonne') return false;
+      // I prodotti senza tipo_sollevatore esplicito sono considerati 2_colonne (retrocompatibilità)
+      const tipo = p.tipo_sollevatore || '2_colonne';
+      if (tipo !== '2_colonne') return false;
       if (p.pavimentazione !== pavimentazione) return false;
       if (!p.veicoli.includes(veicolo)) return false;
       const bracci = getBracciInfo(p);
@@ -211,25 +202,23 @@ function selectProducts(products, pavimentazione, veicolo, distanzaMm) {
     .sort((a, b) => a.prezzoNetto - b.prezzoNetto);
 }
 
-// Selezione per ponti 4 colonne: filtro per impiego + portata minima del veicolo
+// Seleziona i prodotti a 4 colonne in base all'impiego (standard / assetto / con_sollevatore /
+// industriale) e al veicolo. La portata minima richiesta dal veicolo è in VEHICLE_MIN_KG.
 function selectProducts4Col(products, impiego, veicolo) {
-  const minKg = VEHICLE_MIN_KG[veicolo] || 0;
+  const minKg = VEHICLE_MIN_KG[veicolo] ?? 0;
   return products
     .filter(p => {
       if (p.tipo_sollevatore !== '4_colonne') return false;
       if (p.impiego !== impiego) return false;
       if (!p.veicoli.includes(veicolo)) return false;
-      // Ridondante ma di sicurezza: la portata deve coprire il veicolo
-      return p.portataKg >= minKg;
+      if (typeof p.portataKg === 'number' && p.portataKg < minKg) return false;
+      return true;
     })
     .sort((a, b) => {
-      // Se i prezzi sono presenti, ordina per prezzo. Se sono null/0, ordina per portata.
-      const aPrice = a.prezzoNetto || 0;
-      const bPrice = b.prezzoNetto || 0;
-      if (aPrice === 0 && bPrice === 0) return a.portataKg - b.portataKg;
-      if (aPrice === 0) return 1;
-      if (bPrice === 0) return -1;
-      return aPrice - bPrice;
+      // Prima i prodotti con prezzo > 0, ordinati per prezzo; in coda quelli a 0 (prezzo da listino)
+      const pa = a.prezzoNetto > 0 ? a.prezzoNetto : Number.MAX_SAFE_INTEGER;
+      const pb = b.prezzoNetto > 0 ? b.prezzoNetto : Number.MAX_SAFE_INTEGER;
+      return pa - pb;
     });
 }
 
@@ -275,58 +264,23 @@ const DISTANZA_PRESETS = [
   { mm: 1450, label: '~1450 mm', desc: 'Truck pesante — bracci max wagon (758->1505mm)',   veicoli: ['truck'] },
 ];
 
-// ─── TIPOLOGIE PONTE (2 vs 4 COLONNE) ─────────────────────────────────────────
+// ─── TIPO SOLLEVATORE (2 / 4 COLONNE) ────────────────────────────────────────
 
 const LIFT_TYPES = [
-  {
-    id: '2_colonne',
-    label: '2 Colonne',
-    icon: '🔧',
-    desc: 'Ponte classico a 2 colonne con bracci articolati. Selezione per distanza punti di presa.',
-    note: 'Con o senza pedana'
-  },
-  {
-    id: '4_colonne',
-    label: '4 Colonne',
-    icon: '🏗️',
-    desc: 'Ponte a 4 colonne con pedane piane. Il veicolo sale con le ruote sulle pedane.',
-    note: 'Standard · Assetto · Industriale'
-  },
+  { id: '2_colonne', label: '2 Colonne',  icon: '🏛️', desc: 'Sollevatori a due colonne — configurazione classica su pavimento industriale o con pedana' },
+  { id: '4_colonne', label: '4 Colonne',  icon: '🏗️', desc: 'Sollevatori a quattro colonne — assetto, prove tecniche, veicoli pesanti e industriali' },
 ];
 
-// Tipologie di impiego per i 4 colonne
+// Tipologie di impiego per i 4 colonne (da catalogo Cascos)
 const IMPIEGO_TYPES_4COL = [
-  {
-    id: 'standard',
-    label: 'Standard — Sollevamento',
-    icon: '🛠️',
-    desc: 'Pedane piane per sollevamento generico. Officina meccanica, gommista, carrozzeria.',
-    badge: 'Base'
-  },
-  {
-    id: 'assetto',
-    label: 'Assetto Ruote',
-    icon: '📐',
-    desc: 'Con piane oscillanti a rulli e sedi per piatti rotanti. Per allineamento/geometria.',
-    badge: 'Allineamento'
-  },
-  {
-    id: 'con_sollevatore',
-    label: 'Con Sollevatore Integrato',
-    icon: '⬆️',
-    desc: 'Pedane + traversa sollevatore elettroidraulico 3.5 Tn per ruote libere sul ponte già alzato.',
-    badge: '+3.500 Kg aux'
-  },
-  {
-    id: 'industriale',
-    label: 'Industriale — Truck',
-    icon: '🚛',
-    desc: 'Alta portata (7 / 12 Tn) per truck, autobus, veicoli commerciali pesanti.',
-    badge: '7-12 Tn'
-  },
+  { id: 'standard',         label: 'Standard',          desc: 'Sollevamento, manutenzione ordinaria',                icon: '🧰' },
+  { id: 'assetto',          label: 'Assetto / Allineamento', desc: 'Con piatti rotanti e scorrevoli integrati',        icon: '🎯' },
+  { id: 'con_sollevatore',  label: 'Con Sollevatore Integrato', desc: 'Pedana con sollevatore ausiliario integrato',   icon: '⬆️' },
+  { id: 'industriale',      label: 'Industriale / Pesante',   desc: 'Portate elevate per truck e veicoli commerciali', icon: '🚛' },
 ];
 
-// Portata minima richiesta per tipologia veicolo (per i 4 colonne)
+// Portata minima del sollevatore in base al tipo di veicolo (in kg)
+// Le soglie tengono conto di un margine di sicurezza rispetto al peso massimo del veicolo.
 const VEHICLE_MIN_KG = {
   utilitaria: 1400,
   car:        2000,
@@ -334,7 +288,7 @@ const VEHICLE_MIN_KG = {
   van:        3500,
   van_lungo:  4000,
   camper:     4500,
-  truck:      5500,   // truck leggeri (Daily, Transit pesante) → C450+/C455+ 5.5Tn coprono
+  truck:      5500,
 };
 
 // ─── HOOKS ───────────────────────────────────────────────────────────────────
@@ -477,31 +431,48 @@ const formatPrice = (n) =>
 
 const today = () => new Date().toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-const generateDocumentText = ({ mode, customer, product, config, qty, note, sconto, prezzoTotale, scontoEuro, prezzoFinale }) => {
-  const vehicleInfo = VEHICLE_TYPES.find(v => v.id === config.veicolo);
+const generateDocumentText = ({ mode, customer, items, note, sconto, imponibile, scontoEuro, prezzoFinale }) => {
   const docType = mode === 'order' ? 'ORDINE' : 'PREVENTIVO';
   const customerName = customer.azienda || customer.nome || '—';
-  const is4Col = config.tipoSollevatore === '4_colonne';
-  const bracciInfo = is4Col ? null : getBracciInfo(product);
 
-  // Righe di configurazione: differenti per 2col e 4col
-  let configLines;
-  if (is4Col) {
-    const impiegoLabel = IMPIEGO_TYPES_4COL.find(t => t.id === config.impiego)?.label || '—';
-    configLines =
-      `Tipologia: 4 Colonne\n` +
-      `Impiego: ${impiegoLabel}\n` +
-      `Veicolo: ${vehicleInfo?.label || '—'}\n` +
-      `Configurazione: Pedane piane / pedane assetto / con sollevatore / industriale (vedi categoria)`;
-  } else {
-    const floorLabel = FLOOR_TYPES.find(f => f.id === config.pavimentazione)?.label || '—';
-    configLines =
-      `Tipologia: 2 Colonne\n` +
-      `Pavimentazione: ${floorLabel}\n` +
-      `Veicolo: ${vehicleInfo?.label || '—'}\n` +
-      `Distanza punti di presa: ${config.distanzaMm} mm\n` +
-      `Configurazione: ${product.pavimentazione === 'industriale' ? 'Senza Pedana' : 'Con Pedana'}`;
-  }
+  const righeProdotti = items.map((it, idx) => {
+    const { product, config, qty } = it;
+    const vehicleInfo = VEHICLE_TYPES.find(v => v.id === config.veicolo);
+    const tipoSollevatore = config.tipoSollevatore || '2_colonne';
+    const is4Col = tipoSollevatore === '4_colonne';
+    const totaleRiga = product.prezzoNetto * qty;
+
+    // Dettagli configurazione variano per 2col/4col
+    let dettagliConfig = '';
+    if (is4Col) {
+      const impiegoLabel = IMPIEGO_TYPES_4COL.find(t => t.id === config.impiego)?.label || '—';
+      dettagliConfig = `Tipo sollevatore: 4 Colonne
+Impiego: ${impiegoLabel}
+Veicolo: ${vehicleInfo?.label || '—'}
+Pavimentazione: Universale (4 colonne)`;
+    } else {
+      const floorLabel = FLOOR_TYPES.find(f => f.id === config.pavimentazione)?.label || '—';
+      const bracciInfo = getBracciInfo(product);
+      dettagliConfig = `Tipo sollevatore: 2 Colonne
+Pavimentazione: ${floorLabel}
+Veicolo: ${vehicleInfo?.label || '—'}
+Distanza punti di presa: ${config.distanzaMm} mm
+Range bracci: ${bracciInfo ? `Min ${bracciInfo.minMm} mm - Max ${bracciInfo.maxMm} mm` : '—'}
+Configurazione: ${product.pavimentazione === 'industriale' ? 'Senza Pedana' : 'Con Pedana'}`;
+    }
+
+    return `--- Articolo ${idx + 1} ---
+Prodotto: ${product.modello}
+Codice: ${product.codice}
+Descrizione: ${product.descrizione}
+Portata: ${product.portata}
+Categoria: ${product.categoria}
+${dettagliConfig}
+Quantita: ${qty}
+Prezzo unitario netto: ${formatPrice(product.prezzoNetto)}
+Totale riga: ${formatPrice(totaleRiga)}
+Note tecniche: ${product.noteTecniche || '—'}`;
+  }).join('\n\n');
 
   return `${docType} CASCOS BY CORMACH
 
@@ -511,23 +482,18 @@ Contatto: ${customer.telefono || '—'}
 Email: ${customer.email || '—'}
 Indirizzo: ${customer.indirizzo || '—'}
 
-${configLines}
+Numero articoli: ${items.length}
 
-Prodotto: ${product.modello}
-Codice: ${product.codice}
-Descrizione: ${product.descrizione}
-Portata: ${product.portata}
-${bracciInfo ? `Range bracci: Min ${bracciInfo.minMm} mm - Max ${bracciInfo.maxMm} mm\n` : ''}Categoria: ${product.categoria}
-Quantita: ${qty}
-Prezzo unitario netto: ${formatPrice(product.prezzoNetto)}
-Totale lordo: ${formatPrice(prezzoTotale)}
+${righeProdotti}
+
+--- RIEPILOGO ---
+Imponibile: ${formatPrice(imponibile)}
 ` +
     (sconto > 0 ? `Sconto ${sconto}%: -${formatPrice(scontoEuro)}\n` : '') +
     `Totale netto: ${formatPrice(prezzoFinale)}
 IVA: esclusa
 
 Note: ${note || '—'}
-Note tecniche: ${product.noteTecniche || '—'}
 
 CASCOS by Cormach Correggio Machinery`;
 };
@@ -641,16 +607,17 @@ function SchedaTecnicaButton({ codice, modello, compact = false }) {
 
 // ─── PRODUCT CARD ─────────────────────────────────────────────────────────────
 
-function ProductCard({ product, isRecommended, onSelect, mode }) {
+function ProductCard({ product, isRecommended, onSelect, mode, alreadyInCart }) {
   const is4Col = product.tipo_sollevatore === '4_colonne';
-  // Per i 4 colonne, pavimentazione è "universale" → etichetta diversa
   const floorLabel = is4Col
     ? 'Pav. Universale'
     : (product.pavimentazione === 'industriale' ? 'Pav. Industriale' : 'Pav. Standard');
-  const floorColor = is4Col ? 'violet' : (product.pavimentazione === 'industriale' ? 'blue' : 'slate');
+  const floorColor = is4Col
+    ? 'violet'
+    : (product.pavimentazione === 'industriale' ? 'blue' : 'slate');
   const bracciInfo = is4Col ? null : getBracciInfo(product);
   const hasPdf = !!PDF_SCHEDE[product.codice];
-  const prezzoDisponibile = product.prezzoNetto && product.prezzoNetto > 0;
+  const hasPrice = typeof product.prezzoNetto === 'number' && product.prezzoNetto > 0;
 
   return (
     <div
@@ -666,21 +633,28 @@ function ProductCard({ product, isRecommended, onSelect, mode }) {
           </span>
         </div>
       )}
+      {alreadyInCart && (
+        <div className="absolute -top-2.5 right-4">
+          <span className="bg-emerald-600 text-white text-xs font-bold px-3 py-0.5 rounded-full flex items-center gap-1">
+            <Check size={11} /> Aggiunto
+          </span>
+        </div>
+      )}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <div className="text-lg font-bold text-white">{product.modello}</div>
           <div className="font-mono text-xs text-slate-400 mt-0.5">Rif. {product.codice}</div>
         </div>
         <div className="text-right">
-          {prezzoDisponibile ? (
+          {hasPrice ? (
             <>
               <div className="text-xl font-bold text-blue-400">{formatPrice(product.prezzoNetto)}</div>
               <div className="text-xs text-slate-500">prezzo netto</div>
             </>
           ) : (
             <>
-              <div className="text-sm font-semibold text-amber-400">Prezzo da listino</div>
-              <div className="text-xs text-slate-500">carica Excel per aggiornare</div>
+              <div className="text-sm font-bold text-amber-300">Prezzo da listino</div>
+              <div className="text-xs text-slate-500">carica file Excel</div>
             </>
           )}
         </div>
@@ -692,6 +666,7 @@ function ProductCard({ product, isRecommended, onSelect, mode }) {
         <Badge text={product.portata} color="green" />
         <Badge text={floorLabel} color={floorColor} />
         <Badge text={product.categoria} color="amber" />
+        {is4Col && <Badge text="4 Colonne" color="violet" />}
         {hasPdf && <Badge text="Scheda PDF" color="slate" />}
       </div>
 
@@ -717,16 +692,23 @@ function ProductCard({ product, isRecommended, onSelect, mode }) {
 
       <div className="flex justify-end">
         <button
-          onClick={() => onSelect(product)}
-          disabled={!prezzoDisponibile}
-          className="flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors disabled:text-slate-600 disabled:cursor-not-allowed"
-          title={!prezzoDisponibile ? 'Carica il listino Excel per abilitare preventivi/ordini' : ''}
+          onClick={() => hasPrice && onSelect(product)}
+          disabled={!hasPrice}
+          className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+            !hasPrice
+              ? 'text-slate-500 cursor-not-allowed'
+              : alreadyInCart
+                ? 'text-emerald-400 hover:text-emerald-300'
+                : 'text-blue-400 hover:text-blue-300'
+          }`}
         >
-          {mode === 'order' ? <ShoppingCart size={14} /> : <FileText size={14} />}
-          {prezzoDisponibile
-            ? (mode === 'order' ? 'Crea Ordine' : 'Crea Preventivo')
-            : 'Prezzo richiesto'}
-          <ChevronRight size={14} />
+          {!hasPrice
+            ? <><AlertCircle size={14} /> Prezzo non disponibile</>
+            : <>
+                {alreadyInCart ? <Plus size={14} /> : (mode === 'order' ? <ShoppingCart size={14} /> : <FileText size={14} />)}
+                {alreadyInCart ? 'Aggiungi ancora' : `Aggiungi al ${mode === 'order' ? 'ordine' : 'preventivo'}`}
+                <ChevronRight size={14} />
+              </>}
         </button>
       </div>
     </div>
@@ -845,22 +827,9 @@ function DashboardView({ onStart, onImport, importStatus, listinoInfo, onResetPr
       {/* ─── STATS ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-3 text-center">
         {[
-          {
-            icon: <Package size={18}/>,
-            label: 'Prodotti',
-            value: productsData.length,
-            sublabel: `${productsData.filter(p => p.tipo_sollevatore === '2_colonne' || !p.tipo_sollevatore).length}×2col · ${productsData.filter(p => p.tipo_sollevatore === '4_colonne').length}×4col`
-          },
-          {
-            icon: <BookOpen size={18}/>,
-            label: 'PDF Schede',
-            value: Object.keys(PDF_SCHEDE).length
-          },
-          {
-            icon: <Euro size={18}/>,
-            label: 'Prezzi',
-            value: listinoInfo ? 'Personalizzati' : 'Base 2026'
-          },
+          { icon: <Package size={18}/>, label: 'Prodotti', value: productsData.length },
+          { icon: <BookOpen size={18}/>, label: 'PDF Schede', value: Object.keys(PDF_SCHEDE).length },
+          { icon: <Euro size={18}/>, label: 'Prezzi', value: listinoInfo ? 'Personalizzati' : 'Base 2026' },
         ].map((c, i) => (
           <div key={i} className="glass rounded-xl p-3">
             <div className="text-slate-400 flex justify-center mb-1">{c.icon}</div>
@@ -868,7 +837,6 @@ function DashboardView({ onStart, onImport, importStatus, listinoInfo, onResetPr
               {c.value}
             </div>
             <div className="text-xs text-slate-500">{c.label}</div>
-            {c.sublabel && <div className="text-[10px] text-slate-600 font-mono mt-0.5">{c.sublabel}</div>}
           </div>
         ))}
       </div>
@@ -876,100 +844,78 @@ function DashboardView({ onStart, onImport, importStatus, listinoInfo, onResetPr
   );
 }
 
-// ─── CONFIGURATOR VIEW (flow divergente: 2 col / 4 col) ──────────────────────
+// ─── CONFIGURATOR VIEW (4 step) ───────────────────────────────────────────────
 
 function ConfiguratorView({ mode, products, onResult, onBack }) {
-  // tipo_sollevatore: '2_colonne' | '4_colonne' | null
+  // Tipo di sollevatore scelto: null = ancora da scegliere, poi '2_colonne' o '4_colonne'
   const [tipoSollevatore, setTipoSollevatore] = useState(null);
+
+  // State condiviso / 2 colonne
   const [step, setStep]               = useState(0);
-  // 2 colonne
   const [pavimentazione, setPav]      = useState(null);
   const [veicolo, setVeicolo]         = useState(null);
   const [distanzaMm, setDistanza]     = useState(null);
   const [sliderVal, setSliderVal]     = useState(950);
   const [useSlider, setUseSlider]     = useState(false);
-  // 4 colonne
+
+  // State specifico 4 colonne
   const [impiego, setImpiego]         = useState(null);
 
-  const handleTipoSollevatore = (id) => {
-    setTipoSollevatore(id);
-    setStep(0);
-    // reset stati dell'altro flow
-    setPav(null); setVeicolo(null); setDistanza(null); setImpiego(null);
-  };
-
-  // ─── FLOW 2 COLONNE ───────────────────────────────────────────────────────
+  // ─── Handlers 2 colonne ───────────────────────────────────────────────────
   const handleFloor   = (id) => { setPav(id); setStep(1); };
-  const handleVehicle = (id) => { setVeicolo(id); setStep(2); };
+  const handleVehicle2Col = (id) => { setVeicolo(id); setStep(2); };
 
   const handlePreset = (mm) => {
     setDistanza(mm);
     const results = selectProducts(products, pavimentazione, veicolo, mm);
-    onResult({
-      tipoSollevatore: '2_colonne',
-      pavimentazione, veicolo, distanzaMm: mm, results
-    });
+    onResult({ tipoSollevatore: '2_colonne', pavimentazione, veicolo, distanzaMm: mm, results });
   };
 
   const handleSliderConfirm = () => {
     const mm = sliderVal;
     setDistanza(mm);
     const results = selectProducts(products, pavimentazione, veicolo, mm);
-    onResult({
-      tipoSollevatore: '2_colonne',
-      pavimentazione, veicolo, distanzaMm: mm, results
-    });
+    onResult({ tipoSollevatore: '2_colonne', pavimentazione, veicolo, distanzaMm: mm, results });
+  };
+
+  // ─── Handlers 4 colonne ───────────────────────────────────────────────────
+  const handleImpiego = (id) => { setImpiego(id); setStep(1); };
+  const handleVehicle4Col = (id) => {
+    setVeicolo(id);
+    const results = selectProducts4Col(products, impiego, id);
+    onResult({ tipoSollevatore: '4_colonne', impiego, veicolo: id, results });
+  };
+
+  // ─── Reset e back ─────────────────────────────────────────────────────────
+  const handleBackInternal = () => {
+    if (tipoSollevatore === null) {
+      onBack();
+      return;
+    }
+    if (step === 0) {
+      // Torna alla scelta del tipo di sollevatore
+      setTipoSollevatore(null);
+      setPav(null); setVeicolo(null); setDistanza(null); setImpiego(null);
+      return;
+    }
+    setStep(s => s - 1);
   };
 
   const presetsPerVeicolo = DISTANZA_PRESETS.filter(p =>
     !veicolo || p.veicoli.includes(veicolo)
   ).filter((p, i, arr) => arr.findIndex(x => x.mm === p.mm && x.desc === p.desc) === i);
 
-  // ─── FLOW 4 COLONNE ───────────────────────────────────────────────────────
-  const handleImpiego = (id) => { setImpiego(id); setStep(1); };
-
-  const handleVehicle4Col = (id) => {
-    setVeicolo(id);
-    const results = selectProducts4Col(products, impiego, id);
-    onResult({
-      tipoSollevatore: '4_colonne',
-      impiego, veicolo: id, results
-    });
-  };
-
-  // Veicoli disponibili per impiego (filtrati per esistenza in catalogo)
-  const veicoliDisponibili4Col = impiego
-    ? VEHICLE_TYPES.filter(v =>
-        products.some(p =>
-          p.tipo_sollevatore === '4_colonne' &&
-          p.impiego === impiego &&
-          p.veicoli.includes(v.id)
-        )
-      )
-    : [];
-
-  // Step totali: 3 per 2col (pavimento, veicolo, distanza) · 2 per 4col (impiego, veicolo)
-  const totalSteps = tipoSollevatore === '4_colonne' ? 2 : tipoSollevatore === '2_colonne' ? 3 : 1;
-
-  // ─── BACK LOGIC ───────────────────────────────────────────────────────────
-  const handleBack = () => {
-    if (tipoSollevatore === null) {
-      onBack();
-      return;
-    }
-    if (step === 0) {
-      // Torno alla scelta 2col/4col
-      setTipoSollevatore(null);
-      return;
-    }
-    setStep(s => s - 1);
-  };
+  // Numero di step totali nell'indicatore (compreso quello di scelta tipo, step -1 logico)
+  // 2 colonne: 4 step visivi (tipo, pav, veicolo, distanza)
+  // 4 colonne: 3 step visivi (tipo, impiego, veicolo)
+  const totalSteps = tipoSollevatore === '4_colonne' ? 3 : 4;
+  const currentStepVisual = tipoSollevatore === null ? 0 : step + 1;
 
   return (
     <div className="animate-fade-in space-y-6">
       <div className="flex items-center gap-3">
         <button
-          onClick={handleBack}
+          onClick={handleBackInternal}
           className="p-2 rounded-lg glass hover:bg-slate-700 transition-colors"
         >
           <ArrowLeft size={18} />
@@ -978,50 +924,43 @@ function ConfiguratorView({ mode, products, onResult, onBack }) {
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-0.5">
             {mode === 'order' ? 'Nuovo Ordine' : 'Nuovo Preventivo'}
             {tipoSollevatore && (
-              <span className="text-blue-400 ml-2">
+              <span className="ml-2 text-blue-400">
                 · {tipoSollevatore === '2_colonne' ? '2 Colonne' : '4 Colonne'}
               </span>
             )}
           </div>
-          {tipoSollevatore && <StepIndicator current={step} total={totalSteps} />}
+          <StepIndicator current={currentStepVisual} total={totalSteps} />
         </div>
       </div>
 
-      {/* ─── STEP INIZIALE: SCELTA TIPO PONTE ─────────────────────────────── */}
+      {/* ─── STEP -1: Scelta tipo sollevatore ────────────────────────────── */}
       {tipoSollevatore === null && (
         <div className="animate-slide-up">
-          <h2 className="text-xl font-bold text-white mb-1">Tipologia di Sollevatore</h2>
+          <h2 className="text-xl font-bold text-white mb-1">Tipo di Sollevatore</h2>
           <p className="text-sm text-slate-400 mb-5">
-            Scegli la famiglia di ponte sollevatore. Determina il flow di selezione e il catalogo filtrato.
+            Scegli la famiglia di sollevatori: 2 colonne per configurazione classica,
+            4 colonne per assetto, prove e veicoli pesanti.
           </p>
           <div className="space-y-3">
             {LIFT_TYPES.map(t => (
               <button
                 key={t.id}
-                onClick={() => handleTipoSollevatore(t.id)}
-                className="w-full glass glass-hover rounded-xl p-5 text-left transition-all hover:scale-[1.01]"
+                onClick={() => { setTipoSollevatore(t.id); setStep(0); }}
+                className="w-full glass glass-hover rounded-xl p-5 text-left flex items-center gap-4 transition-all hover:scale-[1.01]"
               >
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl flex-shrink-0">{t.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="text-lg font-bold text-white">{t.label}</div>
-                      <Badge text={t.note} color="blue" />
-                    </div>
-                    <div className="text-sm text-slate-400">{t.desc}</div>
-                  </div>
-                  <ChevronRight size={18} className="text-slate-500 mt-1 flex-shrink-0" />
+                <span className="text-3xl w-10 text-center">{t.icon}</span>
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-white mb-1">{t.label}</div>
+                  <div className="text-sm text-slate-400">{t.desc}</div>
                 </div>
+                <ChevronRight size={18} className="text-slate-500 flex-shrink-0" />
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* FLOW 2 COLONNE                                                      */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-
+      {/* ─── FLOW 2 COLONNE ──────────────────────────────────────────────── */}
       {tipoSollevatore === '2_colonne' && step === 0 && (
         <div className="animate-slide-up">
           <h2 className="text-xl font-bold text-white mb-1">Tipo di Pavimentazione</h2>
@@ -1064,7 +1003,7 @@ function ConfiguratorView({ mode, products, onResult, onBack }) {
             {VEHICLE_TYPES.map(v => (
               <button
                 key={v.id}
-                onClick={() => handleVehicle(v.id)}
+                onClick={() => handleVehicle2Col(v.id)}
                 className="w-full glass glass-hover rounded-xl px-4 py-3.5 text-left flex items-center gap-4 transition-all hover:scale-[1.005]"
               >
                 <span className="text-2xl w-8 text-center">{v.icon}</span>
@@ -1169,34 +1108,26 @@ function ConfiguratorView({ mode, products, onResult, onBack }) {
         </div>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* FLOW 4 COLONNE                                                      */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-
+      {/* ─── FLOW 4 COLONNE ──────────────────────────────────────────────── */}
       {tipoSollevatore === '4_colonne' && step === 0 && (
         <div className="animate-slide-up">
           <h2 className="text-xl font-bold text-white mb-1">Tipologia di Impiego</h2>
           <p className="text-sm text-slate-400 mb-5">
-            Qual è la lavorazione principale? Il tipo di impiego determina la configurazione delle pedane.
+            A cosa deve servire principalmente il sollevatore? La scelta filtra le famiglie di prodotto.
           </p>
           <div className="space-y-3">
             {IMPIEGO_TYPES_4COL.map(t => (
               <button
                 key={t.id}
                 onClick={() => handleImpiego(t.id)}
-                className="w-full glass glass-hover rounded-xl p-4 text-left transition-all hover:scale-[1.005]"
+                className="w-full glass glass-hover rounded-xl p-5 text-left flex items-center gap-4 transition-all hover:scale-[1.005]"
               >
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl flex-shrink-0">{t.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="font-bold text-white">{t.label}</div>
-                      <Badge text={t.badge} color="amber" />
-                    </div>
-                    <div className="text-xs text-slate-400 leading-relaxed">{t.desc}</div>
-                  </div>
-                  <ChevronRight size={16} className="text-slate-500 mt-1 flex-shrink-0" />
+                <span className="text-2xl w-8 text-center">{t.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-base font-bold text-white mb-0.5">{t.label}</div>
+                  <div className="text-xs text-slate-400">{t.desc}</div>
                 </div>
+                <ChevronRight size={16} className="text-slate-500 flex-shrink-0" />
               </button>
             ))}
           </div>
@@ -1208,21 +1139,15 @@ function ConfiguratorView({ mode, products, onResult, onBack }) {
           <div className="flex items-center gap-2 mb-1">
             <h2 className="text-xl font-bold text-white">Tipo di Veicolo</h2>
             <Badge
-              text={IMPIEGO_TYPES_4COL.find(t => t.id === impiego)?.label || ''}
+              text={IMPIEGO_TYPES_4COL.find(x => x.id === impiego)?.label || impiego}
               color="amber"
             />
           </div>
-          <p className="text-sm text-slate-400 mb-3">
-            Seleziona il veicolo target. La portata del ponte sarà automaticamente dimensionata.
+          <p className="text-sm text-slate-400 mb-5">
+            Seleziona la categoria del veicolo: filtra la portata minima necessaria.
           </p>
-          {veicoliDisponibili4Col.length < VEHICLE_TYPES.length && (
-            <div className="glass rounded-xl px-3 py-2 border border-slate-700 mb-4 text-xs text-slate-400">
-              <strong className="text-slate-300">Nota:</strong> alcuni veicoli non sono compatibili con
-              il tipo di impiego scelto e sono nascosti.
-            </div>
-          )}
           <div className="space-y-2">
-            {veicoliDisponibili4Col.map(v => (
+            {VEHICLE_TYPES.map(v => (
               <button
                 key={v.id}
                 onClick={() => handleVehicle4Col(v.id)}
@@ -1237,14 +1162,6 @@ function ConfiguratorView({ mode, products, onResult, onBack }) {
               </button>
             ))}
           </div>
-          {veicoliDisponibili4Col.length === 0 && (
-            <div className="glass rounded-xl p-5 text-center">
-              <AlertCircle size={24} className="text-amber-400 mx-auto mb-2" />
-              <p className="text-sm text-slate-400">
-                Nessun veicolo disponibile per questo impiego. Torna indietro e scegli un'altra tipologia.
-              </p>
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -1253,22 +1170,16 @@ function ConfiguratorView({ mode, products, onResult, onBack }) {
 
 // ─── RESULTS VIEW ─────────────────────────────────────────────────────────────
 
-function ResultsView({ mode, config, onSelectProduct, onBack, onReset }) {
-  const { results = [], veicolo, pavimentazione, distanzaMm, tipoSollevatore, impiego } = config;
-  const vehicleInfo = VEHICLE_TYPES.find(v => v.id === veicolo);
-  const floorLabel  = FLOOR_TYPES.find(f => f.id === pavimentazione)?.label;
-  const impiegoInfo = IMPIEGO_TYPES_4COL.find(t => t.id === impiego);
-
+function ResultsView({ mode, config, cartItems, onAddToCart, onGoToQuote, onBack, onReset }) {
+  const { results = [], veicolo, pavimentazione, distanzaMm, impiego, tipoSollevatore } = config;
   const is4Col = tipoSollevatore === '4_colonne';
+  const vehicleInfo = VEHICLE_TYPES.find(v => v.id === veicolo);
+  const floorLabel  = is4Col ? null : FLOOR_TYPES.find(f => f.id === pavimentazione)?.label;
+  const impiegoLabel = is4Col ? IMPIEGO_TYPES_4COL.find(t => t.id === impiego)?.label : null;
 
-  // Header di riepilogo: differente per 2 col vs 4 col
-  const summary = is4Col
-    ? `${vehicleInfo?.icon} ${vehicleInfo?.label} · ${impiegoInfo?.label || ''} · 4 Colonne`
-    : `${vehicleInfo?.icon} ${vehicleInfo?.label} · ${distanzaMm} mm · ${floorLabel} · 2 Colonne`;
-
-  const noResultsMsg = is4Col
-    ? 'Nessun sollevatore Cascos a 4 colonne copre la combinazione impiego/veicolo selezionata. Prova a modificare l\'impiego o il veicolo.'
-    : 'Nessun sollevatore Cascos a 2 colonne copre la combinazione veicolo/pavimentazione/distanza selezionata. Prova a modificare la distanza.';
+  const cartCount = cartItems.length;
+  // Aggregazione per product.id: un modello è "già nel carrello" se c'è almeno una config nel carrello.
+  const cartIds = new Set(cartItems.map(it => it.product.id));
 
   return (
     <div className="animate-fade-in space-y-5">
@@ -1280,17 +1191,52 @@ function ResultsView({ mode, config, onSelectProduct, onBack, onReset }) {
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-0.5">
             {mode === 'order' ? 'Risultati Ordine' : 'Risultati Preventivo'}
           </div>
-          <div className="text-white font-semibold">{summary}</div>
+          <div className="text-white font-semibold">
+            {is4Col
+              ? <>{vehicleInfo?.icon} {vehicleInfo?.label} · {impiegoLabel} · 4 Colonne</>
+              : <>{vehicleInfo?.icon} {vehicleInfo?.label} · {distanzaMm} mm · {floorLabel}</>
+            }
+          </div>
         </div>
       </div>
+
+      {cartCount > 0 && (
+        <div className="glass rounded-xl p-4 border border-emerald-500/30 bg-emerald-500/5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              {mode === 'order' ? <ShoppingCart size={18} className="text-emerald-400" /> : <FileText size={18} className="text-emerald-400" />}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-emerald-300">
+                {cartCount} articol{cartCount === 1 ? 'o' : 'i'} nel {mode === 'order' ? 'ordine' : 'preventivo'}
+              </div>
+              <div className="text-xs text-slate-400 truncate">
+                {cartItems.map(it => it.product.modello).join(', ')}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={onGoToQuote}
+            className="flex-shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            Prosegui
+            <ChevronRight size={14} />
+          </button>
+        </div>
+      )}
 
       {results.length === 0 ? (
         <div className="glass rounded-xl p-8 text-center space-y-3">
           <AlertCircle size={32} className="text-amber-400 mx-auto" />
           <div className="text-white font-semibold">Nessun modello compatibile</div>
-          <div className="text-sm text-slate-400">{noResultsMsg}</div>
+          <div className="text-sm text-slate-400">
+            {is4Col
+              ? 'Nessun sollevatore 4 colonne Cascos copre la combinazione impiego/veicolo selezionata. Prova un altro tipo di impiego o veicolo.'
+              : 'Nessun sollevatore Cascos copre la combinazione veicolo/pavimentazione/distanza selezionata. Prova a modificare la distanza.'
+            }
+          </div>
           <button onClick={onBack} className="glass glass-hover rounded-xl px-4 py-2 text-sm text-white transition-colors">
-            Modifica selezione
+            {is4Col ? 'Modifica impiego' : 'Modifica distanza'}
           </button>
         </div>
       ) : (
@@ -1300,8 +1246,9 @@ function ResultsView({ mode, config, onSelectProduct, onBack, onReset }) {
               key={p.id}
               product={p}
               isRecommended={i === 0}
-              onSelect={onSelectProduct}
+              onSelect={onAddToCart}
               mode={mode}
+              alreadyInCart={cartIds.has(p.id)}
             />
           ))}
         </div>
@@ -1319,29 +1266,23 @@ function ResultsView({ mode, config, onSelectProduct, onBack, onReset }) {
 
 // ─── QUOTE VIEW ───────────────────────────────────────────────────────────────
 
-function QuoteView({ mode, product, config, onBack, onReset }) {
+function QuoteView({ mode, items, onUpdateQty, onRemoveItem, onAddMore, onBack, onReset }) {
   const [customer, setCustomer] = useState({ nome: '', azienda: '', email: '', telefono: '', indirizzo: '' });
-  const [qty, setQty]           = useState(1);
   const [note, setNote]         = useState('');
   const [sconto, setSconto]     = useState(0);
   const [generated, setGenerated] = useState(false);
   const [copied, setCopied]     = useState(false);
 
-  const vehicleInfo   = VEHICLE_TYPES.find(v => v.id === config.veicolo);
-  const floorLabel    = FLOOR_TYPES.find(f => f.id === config.pavimentazione)?.label;
-  const impiegoInfo   = IMPIEGO_TYPES_4COL.find(t => t.id === config.impiego);
-  const is4Col        = config.tipoSollevatore === '4_colonne';
-  const bracciInfo    = is4Col ? null : getBracciInfo(product);
-  const prezzoTotale  = product.prezzoNetto * qty;
-  const scontoEuro    = prezzoTotale * (sconto / 100);
-  const prezzoFinale  = prezzoTotale - scontoEuro;
+  const imponibile    = items.reduce((sum, it) => sum + it.product.prezzoNetto * it.qty, 0);
+  const scontoEuro    = imponibile * (sconto / 100);
+  const prezzoFinale  = imponibile - scontoEuro;
+  const totArticoli   = items.reduce((sum, it) => sum + it.qty, 0);
   const docType       = mode === 'order' ? 'ORDINE' : 'PREVENTIVO';
-  const hasPdf        = !!PDF_SCHEDE[product.codice];
 
   const handleGenerate = () => setGenerated(true);
 
   const buildDocumentText = () => generateDocumentText({
-    mode, customer, product, config, qty, note, sconto, prezzoTotale, scontoEuro, prezzoFinale
+    mode, customer, items, note, sconto, imponibile, scontoEuro, prezzoFinale
   });
 
   const handleWhatsApp = () => {
@@ -1360,6 +1301,7 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
 
   const inputCls = "w-full glass rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 border border-slate-700 focus:outline-none focus:border-blue-500 transition-colors";
 
+  // ─── DOCUMENTO GENERATO ───────────────────────────────────────────────────
   if (generated) {
     return (
       <div className="animate-fade-in space-y-5">
@@ -1383,7 +1325,9 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
           </button>
           <div>
             <div className="text-xs text-slate-500 uppercase tracking-wider">{docType} Generato</div>
-            <div className="text-white font-semibold">{product.modello} · {customer.azienda || customer.nome}</div>
+            <div className="text-white font-semibold">
+              {items.length} articol{items.length === 1 ? 'o' : 'i'} · {customer.azienda || customer.nome}
+            </div>
           </div>
         </div>
 
@@ -1406,25 +1350,6 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
             </div>
           </div>
 
-          <div className="px-4 py-3 bg-slate-900/50 print:bg-gray-50 border-b border-slate-700 print:border-gray-300">
-            <div className="flex flex-wrap gap-4 text-xs text-slate-400 print:text-gray-600">
-              {is4Col ? (
-                <>
-                  <span>Tipologia: <strong className="text-white print:text-black">4 Colonne</strong></span>
-                  <span>Impiego: <strong className="text-white print:text-black">{impiegoInfo?.label || '—'}</strong></span>
-                  <span>Veicolo: <strong className="text-white print:text-black">{vehicleInfo?.label}</strong></span>
-                </>
-              ) : (
-                <>
-                  <span>Pavimento: <strong className="text-white print:text-black">{floorLabel}</strong></span>
-                  <span>Veicolo: <strong className="text-white print:text-black">{vehicleInfo?.label}</strong></span>
-                  <span>Bracci: <strong className="text-violet-300 print:text-violet-700 font-mono">{config.distanzaMm} mm</strong></span>
-                  <span>Config.: <strong className="text-white print:text-black">{product.pavimentazione === 'industriale' ? 'Senza Pedana' : 'Con Pedana'}</strong></span>
-                </>
-              )}
-            </div>
-          </div>
-
           <div className="p-4 border-b border-slate-700 print:border-gray-300">
             <table className="w-full text-sm">
               <thead>
@@ -1437,38 +1362,53 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="py-2 text-blue-400 print:text-blue-700 font-mono font-semibold">{product.codice}</td>
-                  <td className="py-2 text-white print:text-black">
-                    <div className="font-semibold">{product.modello}</div>
-                    <div className="text-xs text-slate-400 print:text-gray-500">{product.portata} · {product.categoria}</div>
-                    {bracciInfo && (
-                      <div className="text-xs text-violet-400 print:text-violet-700">
-                        Bracci: {bracciInfo.minMm}–{bracciInfo.maxMm} mm
-                      </div>
-                    )}
-                  </td>
-                  <td className="py-2 text-white print:text-black text-right">{qty}</td>
-                  <td className="py-2 text-white print:text-black text-right font-mono">{formatPrice(product.prezzoNetto)}</td>
-                  <td className="py-2 text-white print:text-black text-right font-mono font-bold">{formatPrice(prezzoTotale)}</td>
-                </tr>
+                {items.map((it) => {
+                  const { product, config, qty } = it;
+                  const vehicleInfo = VEHICLE_TYPES.find(v => v.id === config.veicolo);
+                  const is4ColRow = (config.tipoSollevatore || '2_colonne') === '4_colonne';
+                  const bracciInfo = is4ColRow ? null : getBracciInfo(product);
+                  const floorLabelRow = is4ColRow ? null : FLOOR_TYPES.find(f => f.id === config.pavimentazione)?.label;
+                  const impiegoLabelRow = is4ColRow ? IMPIEGO_TYPES_4COL.find(t => t.id === config.impiego)?.label : null;
+                  const totaleRiga = product.prezzoNetto * qty;
+                  return (
+                    <tr key={it.id} className="align-top border-t border-slate-700/50 print:border-gray-200 first:border-0">
+                      <td className="py-2 text-blue-400 print:text-blue-700 font-mono font-semibold">{product.codice}</td>
+                      <td className="py-2 text-white print:text-black">
+                        <div className="font-semibold">{product.modello}</div>
+                        <div className="text-xs text-slate-400 print:text-gray-500">{product.portata} · {product.categoria}</div>
+                        <div className="text-xs text-slate-500 print:text-gray-600">
+                          {is4ColRow
+                            ? <>4 Colonne · {vehicleInfo?.label} · {impiegoLabelRow}</>
+                            : <>{floorLabelRow} · {vehicleInfo?.label} · {config.distanzaMm} mm</>
+                          }
+                        </div>
+                        {bracciInfo && (
+                          <div className="text-xs text-violet-400 print:text-violet-700">
+                            Bracci: {bracciInfo.minMm}–{bracciInfo.maxMm} mm
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-2 text-white print:text-black text-right">{qty}</td>
+                      <td className="py-2 text-white print:text-black text-right font-mono">{formatPrice(product.prezzoNetto)}</td>
+                      <td className="py-2 text-white print:text-black text-right font-mono font-bold">{formatPrice(totaleRiga)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           <div className="p-4 border-b border-slate-700 print:border-gray-300">
             <div className="flex flex-col items-end gap-1 text-sm">
+              <div className="flex gap-6 text-slate-400 print:text-gray-500">
+                <span>Imponibile ({totArticoli} art.)</span>
+                <span className="font-mono">{formatPrice(imponibile)}</span>
+              </div>
               {sconto > 0 && (
-                <>
-                  <div className="flex gap-6 text-slate-400 print:text-gray-500">
-                    <span>Imponibile</span>
-                    <span className="font-mono">{formatPrice(prezzoTotale)}</span>
-                  </div>
-                  <div className="flex gap-6 text-amber-400 print:text-amber-700">
-                    <span>Sconto {sconto}%</span>
-                    <span className="font-mono">-{formatPrice(scontoEuro)}</span>
-                  </div>
-                </>
+                <div className="flex gap-6 text-amber-400 print:text-amber-700">
+                  <span>Sconto {sconto}%</span>
+                  <span className="font-mono">-{formatPrice(scontoEuro)}</span>
+                </div>
               )}
               <div className="flex gap-6 text-white print:text-black text-lg font-bold border-t border-slate-600 print:border-gray-300 pt-2 mt-1">
                 <span>Totale Netto</span>
@@ -1478,35 +1418,36 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
             </div>
           </div>
 
-          {(note || product.noteTecniche) && (
+          {note && (
             <div className="p-4">
-              {note && (
-                <div className="mb-3">
-                  <div className="text-xs text-slate-500 print:text-gray-500 uppercase tracking-wider mb-1">Note</div>
-                  <div className="text-sm text-slate-300 print:text-gray-700">{note}</div>
-                </div>
-              )}
-              <div>
-                <div className="text-xs text-slate-500 print:text-gray-500 uppercase tracking-wider mb-1">Dati Tecnici</div>
-                <div className="text-xs text-slate-400 print:text-gray-600">{product.noteTecniche}</div>
-              </div>
+              <div className="text-xs text-slate-500 print:text-gray-500 uppercase tracking-wider mb-1">Note</div>
+              <div className="text-sm text-slate-300 print:text-gray-700">{note}</div>
             </div>
           )}
         </div>
 
-        {/* SCHEDA TECNICA PDF */}
-        {hasPdf && (
-          <div className="no-print glass rounded-xl p-4 border border-sky-500/20 space-y-2">
+        {/* SCHEDE TECNICHE PDF — una per ogni prodotto con PDF disponibile */}
+        {items.some(it => !!PDF_SCHEDE[it.product.codice]) && (
+          <div className="no-print glass rounded-xl p-4 border border-sky-500/20 space-y-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
               <BookOpen size={15} />
-              Scheda Tecnica Ufficiale · {product.modello}
+              Schede Tecniche Ufficiali
             </div>
             <p className="text-xs text-slate-400">
-              Depliant originale Cascos, estratto dal catalogo. Puoi aprirlo, scaricarlo e allegarlo su WhatsApp insieme al preventivo.
+              Depliant originali Cascos per ogni prodotto del {docType.toLowerCase()}. Scaricali e allegali su WhatsApp.
             </p>
-            <SchedaTecnicaButton codice={product.codice} modello={product.modello} />
-            <div className="pt-1 text-xs text-slate-600">
-              Per condividere su WhatsApp: scarica il PDF, poi allegalo manualmente alla chat WhatsApp col cliente.
+            <div className="space-y-2">
+              {items.filter(it => !!PDF_SCHEDE[it.product.codice]).map(it => (
+                <div key={it.id} className="flex items-center justify-between gap-3 bg-slate-900/40 rounded-lg px-3 py-2">
+                  <div className="min-w-0">
+                    <div className="text-sm text-white truncate">{it.product.modello}</div>
+                    <div className="text-xs text-slate-500 font-mono">Rif. {it.product.codice}</div>
+                  </div>
+                  <div className="flex-shrink-0">
+                    <SchedaTecnicaButton codice={it.product.codice} modello={it.product.modello} compact />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -1546,33 +1487,112 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
         </button>
         <div>
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-0.5">Dati {docType}</div>
-          <div className="text-white font-semibold">{product.modello} · {product.codice}</div>
+          <div className="text-white font-semibold">
+            {items.length} articol{items.length === 1 ? 'o' : 'i'} selezionat{items.length === 1 ? 'o' : 'i'}
+          </div>
         </div>
       </div>
 
-      <div className="glass rounded-xl p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <div className="font-bold text-white">{product.modello}</div>
-            <div className="text-xs text-slate-400 font-mono">Rif. {product.codice}</div>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              <Badge text={product.portata} color="green" />
-              {bracciInfo && <Badge text={`Bracci ${bracciInfo.minMm}–${bracciInfo.maxMm} mm`} color="violet" />}
-              {is4Col && <Badge text={impiegoInfo?.label || '4 Colonne'} color="amber" />}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-xl font-bold text-blue-400">{formatPrice(product.prezzoNetto)}</div>
-            <div className="text-xs text-slate-500">p. unitario netto</div>
-          </div>
+      {/* ELENCO PRODOTTI NEL CARRELLO */}
+      <div className="glass rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-slate-300">Articoli nel {docType.toLowerCase()}</div>
+          <Badge text={`${items.length} art.`} color="blue" />
         </div>
-        {hasPdf && (
-          <div className="mt-3 pt-3 border-t border-slate-700/50">
-            <SchedaTecnicaButton codice={product.codice} modello={product.modello} compact />
-          </div>
-        )}
+
+        <div className="space-y-3">
+          {items.map((it) => {
+            const { product, config, qty } = it;
+            const vehicleInfo = VEHICLE_TYPES.find(v => v.id === config.veicolo);
+            const is4ColRow = (config.tipoSollevatore || '2_colonne') === '4_colonne';
+            const bracciInfo = is4ColRow ? null : getBracciInfo(product);
+            const floorLabelRow = is4ColRow ? 'Pav. Universale' : FLOOR_TYPES.find(f => f.id === config.pavimentazione)?.label;
+            const floorColorRow = is4ColRow ? 'violet' : (config.pavimentazione === 'industriale' ? 'blue' : 'slate');
+            const impiegoLabelRow = is4ColRow ? IMPIEGO_TYPES_4COL.find(t => t.id === config.impiego)?.label : null;
+            const totaleRiga = product.prezzoNetto * qty;
+            const hasPdf = !!PDF_SCHEDE[product.codice];
+
+            return (
+              <div key={it.id} className="bg-slate-900/50 rounded-lg p-3 border border-slate-700/50 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-white">{product.modello}</div>
+                    <div className="font-mono text-xs text-slate-400">Rif. {product.codice}</div>
+                  </div>
+                  <button
+                    onClick={() => onRemoveItem(it.id)}
+                    title="Rimuovi articolo"
+                    className="flex-shrink-0 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge text={product.portata} color="green" />
+                  <Badge text={floorLabelRow} color={floorColorRow} />
+                  {is4ColRow
+                    ? <Badge text="4 Colonne" color="violet" />
+                    : (bracciInfo && <Badge text={`${config.distanzaMm} mm`} color="violet" />)
+                  }
+                  {is4ColRow && impiegoLabelRow && <Badge text={impiegoLabelRow} color="amber" />}
+                </div>
+
+                <div className="text-xs text-slate-500">
+                  {vehicleInfo?.icon} {vehicleInfo?.label}
+                  {bracciInfo && <span> · Bracci {bracciInfo.minMm}–{bracciInfo.maxMm} mm</span>}
+                </div>
+
+                {hasPdf && (
+                  <SchedaTecnicaButton codice={product.codice} modello={product.modello} compact />
+                )}
+
+                <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-700/50">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-slate-400">Q.ta</label>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => onUpdateQty(it.id, qty - 1)}
+                        disabled={qty <= 1}
+                        className="w-7 h-7 rounded-lg glass hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-white text-sm font-bold transition-colors"
+                      >
+                        −
+                      </button>
+                      <input
+                        className="w-12 text-center glass rounded-lg py-1 text-sm text-white border border-slate-700 focus:outline-none focus:border-blue-500"
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={qty}
+                        onChange={e => onUpdateQty(it.id, Math.max(1, parseInt(e.target.value) || 1))}
+                      />
+                      <button
+                        onClick={() => onUpdateQty(it.id, qty + 1)}
+                        className="w-7 h-7 rounded-lg glass hover:bg-slate-700 text-white text-sm font-bold transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-500">{formatPrice(product.prezzoNetto)} x {qty}</div>
+                    <div className="text-sm font-bold text-blue-400 font-mono">{formatPrice(totaleRiga)}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={onAddMore}
+          className="w-full glass glass-hover rounded-xl py-3 flex items-center justify-center gap-2 text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors border border-dashed border-blue-500/30"
+        >
+          <Plus size={16} /> Aggiungi un altro prodotto
+        </button>
       </div>
 
+      {/* DATI CLIENTE */}
       <div className="glass rounded-xl p-4 space-y-3">
         <div className="text-sm font-semibold text-slate-300 mb-1">Dati Cliente</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1584,32 +1604,21 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
         <input className={inputCls} placeholder="Indirizzo di consegna" value={customer.indirizzo} onChange={e => setCustomer(s => ({...s, indirizzo: e.target.value}))} />
       </div>
 
+      {/* DETTAGLI PREVENTIVO / ORDINE */}
       <div className="glass rounded-xl p-4 space-y-3">
         <div className="text-sm font-semibold text-slate-300 mb-1">Dettagli {docType}</div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-slate-400 mb-1 block">Quantita</label>
-            <input
-              className={inputCls}
-              type="number"
-              min="1"
-              max="99"
-              value={qty}
-              onChange={e => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-            />
-          </div>
-          <div>
-            <label className="text-xs text-slate-400 mb-1 block">Sconto % (opzionale)</label>
-            <input
-              className={inputCls}
-              type="number"
-              min="0"
-              max="50"
-              placeholder="0"
-              value={sconto || ''}
-              onChange={e => setSconto(Math.min(50, Math.max(0, parseFloat(e.target.value) || 0)))}
-            />
-          </div>
+        <div>
+          <label className="text-xs text-slate-400 mb-1 block">Sconto globale % (opzionale)</label>
+          <input
+            className={inputCls}
+            type="number"
+            min="0"
+            max="50"
+            placeholder="0"
+            value={sconto || ''}
+            onChange={e => setSconto(Math.min(50, Math.max(0, parseFloat(e.target.value) || 0)))}
+          />
+          <p className="text-xs text-slate-500 mt-1">Si applica al totale di tutti gli articoli</p>
         </div>
         <textarea
           className={`${inputCls} resize-none h-20`}
@@ -1619,10 +1628,11 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
         />
       </div>
 
+      {/* TOTALI */}
       <div className="glass rounded-xl p-4">
         <div className="flex justify-between items-center text-sm text-slate-400 mb-1">
-          <span>{qty} x {formatPrice(product.prezzoNetto)}</span>
-          <span>{formatPrice(prezzoTotale)}</span>
+          <span>{totArticoli} articol{totArticoli === 1 ? 'o' : 'i'} · imponibile</span>
+          <span>{formatPrice(imponibile)}</span>
         </div>
         {sconto > 0 && (
           <div className="flex justify-between items-center text-sm text-amber-400 mb-1">
@@ -1639,7 +1649,7 @@ function QuoteView({ mode, product, config, onBack, onReset }) {
 
       <button
         onClick={handleGenerate}
-        disabled={!customer.nome}
+        disabled={!customer.nome || items.length === 0}
         className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold rounded-xl py-4 flex items-center justify-center gap-2 transition-colors"
       >
         {mode === 'order' ? <ShoppingCart size={18} /> : <FileText size={18} />}
@@ -1662,13 +1672,80 @@ export default function App() {
   const [view, setView]                   = useState('dashboard');
   const [mode, setMode]                   = useState('quote');
   const [config, setConfig]               = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [cartItems, setCartItems]         = useState([]);
   const [importStatus, setImportStatus]   = useState(null);
 
-  const handleStart          = (m) => { setMode(m); setView('configurator'); };
+  const handleStart          = (m) => {
+    setMode(m);
+    setCartItems([]);
+    setConfig(null);
+    setView('configurator');
+  };
   const handleConfigResult   = (cfg) => { setConfig(cfg); setView('results'); };
-  const handleSelectProduct  = (p) => { setSelectedProduct(p); setView('quote'); };
-  const handleReset          = () => { setView('dashboard'); setConfig(null); setSelectedProduct(null); };
+
+  // Aggiunge il prodotto al carrello con la configurazione corrente.
+  // Se lo stesso prodotto con la stessa configurazione c'e' gia', incrementa la quantita'.
+  // Un prodotto 2col e lo stesso prodotto 4col (o con impiego diverso) sono righe separate.
+  const handleAddToCart = (product) => {
+    setCartItems(items => {
+      const existingIdx = items.findIndex(it => {
+        if (it.product.id !== product.id) return false;
+        // Deve matchare il tipo di sollevatore
+        const itTipo = it.config.tipoSollevatore || '2_colonne';
+        const cfgTipo = config.tipoSollevatore || '2_colonne';
+        if (itTipo !== cfgTipo) return false;
+        if (cfgTipo === '4_colonne') {
+          return it.config.impiego === config.impiego &&
+                 it.config.veicolo === config.veicolo;
+        }
+        return it.config.pavimentazione === config.pavimentazione &&
+               it.config.veicolo        === config.veicolo &&
+               it.config.distanzaMm     === config.distanzaMm;
+      });
+      if (existingIdx >= 0) {
+        const updated = [...items];
+        updated[existingIdx] = { ...updated[existingIdx], qty: updated[existingIdx].qty + 1 };
+        return updated;
+      }
+      return [...items, {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        product,
+        config,
+        qty: 1,
+      }];
+    });
+  };
+
+  const handleUpdateQty = (itemId, newQty) => {
+    setCartItems(items => items.map(it =>
+      it.id === itemId ? { ...it, qty: Math.max(1, Math.min(99, newQty)) } : it
+    ));
+  };
+
+  const handleRemoveItem = (itemId) => {
+    setCartItems(items => {
+      const updated = items.filter(it => it.id !== itemId);
+      // Se il carrello si svuota mentre si e' nella QuoteView, torna ai risultati
+      if (updated.length === 0 && view === 'quote') {
+        setView(config ? 'results' : 'configurator');
+      }
+      return updated;
+    });
+  };
+
+  const handleGoToQuote = () => setView('quote');
+
+  // Torna al configuratore per aggiungere un altro prodotto (config pulita)
+  const handleAddMore = () => {
+    setConfig(null);
+    setView('configurator');
+  };
+
+  const handleReset = () => {
+    setView('dashboard');
+    setConfig(null);
+    setCartItems([]);
+  };
 
   const handleImport = async (file) => {
     try {
@@ -1707,12 +1784,25 @@ export default function App() {
       <header className={`sticky z-40 glass border-b border-slate-800/60 no-print ${updateAvailable ? 'top-12' : 'top-0'}`}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <Logo />
-          <button
-            onClick={handleReset}
-            className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
-          >
-            <RotateCcw size={13} /> Reset
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Indicatore carrello nell'header quando fuori dalla QuoteView */}
+            {cartItems.length > 0 && view !== 'quote' && (
+              <button
+                onClick={handleGoToQuote}
+                className="relative flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors"
+                title="Vai al preventivo"
+              >
+                {mode === 'order' ? <ShoppingCart size={13} /> : <FileText size={13} />}
+                <span>{cartItems.length}</span>
+              </button>
+            )}
+            <button
+              onClick={handleReset}
+              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+            >
+              <RotateCcw size={13} /> Reset
+            </button>
+          </div>
         </div>
       </header>
 
@@ -1731,24 +1821,28 @@ export default function App() {
             mode={mode}
             products={products}
             onResult={handleConfigResult}
-            onBack={() => setView('dashboard')}
+            onBack={() => cartItems.length > 0 ? setView('quote') : setView('dashboard')}
           />
         )}
         {view === 'results' && config && (
           <ResultsView
             mode={mode}
             config={config}
-            onSelectProduct={handleSelectProduct}
+            cartItems={cartItems}
+            onAddToCart={handleAddToCart}
+            onGoToQuote={handleGoToQuote}
             onBack={() => setView('configurator')}
             onReset={handleReset}
           />
         )}
-        {view === 'quote' && selectedProduct && config && (
+        {view === 'quote' && cartItems.length > 0 && (
           <QuoteView
             mode={mode}
-            product={selectedProduct}
-            config={config}
-            onBack={() => setView('results')}
+            items={cartItems}
+            onUpdateQty={handleUpdateQty}
+            onRemoveItem={handleRemoveItem}
+            onAddMore={handleAddMore}
+            onBack={() => config ? setView('results') : setView('configurator')}
             onReset={handleReset}
           />
         )}
