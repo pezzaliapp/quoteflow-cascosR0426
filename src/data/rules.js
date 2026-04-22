@@ -1,862 +1,106 @@
-[
+// Mapping veicoli con descrizioni UI
+export const VEHICLE_TYPES = [
+  { id: 'utilitaria', label: 'Utilitaria', icon: '🚗', desc: 'Fino a 1.400 Kg (Panda, Polo, C1...)', maxKg: 1400 },
+  { id: 'car',        label: 'Car / Berlina', icon: '🚙', desc: 'Fino a 2.000 Kg (Golf, Focus, 3008...)', maxKg: 2000 },
+  { id: 'suv',        label: 'SUV / Fuoristrada', icon: '🚐', desc: 'Fino a 2.800 Kg (Defender, X5, Grand Cherokee...)', maxKg: 2800 },
+  { id: 'van',        label: 'Van / Furgone', icon: '🚚', desc: 'Fino a 3.500 Kg (Transit, Ducato, Sprinter...)', maxKg: 3500 },
+  { id: 'van_lungo',  label: 'Van Lungo / Passo Lungo', icon: '🚌', desc: 'Fino a 5.000 Kg (Sprinter XL, Crafter L3...)', maxKg: 5000 },
+  { id: 'camper',     label: 'Camper / Motorhome', icon: '🏕️', desc: 'Fino a 5.500 Kg (Camper professionali)', maxKg: 5500 },
+  { id: 'truck',      label: 'Truck / Veicolo Pesante', icon: '🚛', desc: 'Oltre 5.000 Kg (veicoli commerciali pesanti)', maxKg: 6000 },
+];
+
+// Tipologie di ponte sollevatore (scelta iniziale)
+export const LIFT_TYPES = [
+  { id: '2_colonne', label: '2 Colonne', icon: '🔧', desc: 'Ponte classico a 2 colonne con bracci articolati.' },
+  { id: '4_colonne', label: '4 Colonne', icon: '🏗️', desc: 'Ponte a 4 colonne con pedane piane.' },
+];
+
+// Pavimentazione — solo per 2 colonne
+export const FLOOR_TYPES = [
   {
-    "id": "c32",
-    "codice": "13120E",
-    "modello": "C3.2",
-    "descrizione": "Ponte sollevatore 2 colonne con pedana. Colonne SlenderTec Made in Germany. Trasmissione a catena integrata nella pedana.",
-    "prezzoNetto": 0,
-    "portata": "3.200 Kg",
-    "portataKg": 3200,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "utilitaria",
-      "car",
-      "suv"
-    ],
-    "famiglia": "C3.2",
-    "noteTecniche": "H.Min 100mm - H.Max 1960mm. Larghezza portale 2700mm. Bracci doppi: 710→1050mm. Alimentazione 400/230V - 3.7kW. Tempo alzata 45\"",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
+    id: 'industriale',
+    label: 'Industriale',
+    desc: 'Pavimento industriale adatto ad ancoraggio (tasselli diretti)',
+    note: 'Modelli C...S — senza pedana',
+    color: 'blue',
   },
   {
-    "id": "c32_confort",
-    "codice": "13120C",
-    "modello": "C3.2 Confort",
-    "descrizione": "Ponte 2 colonne con pedana. Versione Comfort con 2 braccia triple e 2 braccia doppie per maggiore versatilità.",
-    "prezzoNetto": 0,
-    "portata": "3.200 Kg",
-    "portataKg": 3200,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "utilitaria",
-      "car",
-      "suv",
-      "van"
-    ],
-    "famiglia": "C3.2",
-    "noteTecniche": "H.Min 100mm - H.Max 1960mm. 2 braccia triple (597→1122mm) + 2 braccia doppie (710→1050mm). 400/230V - 3.7kW.",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
+    id: 'non_industriale',
+    label: 'Non Industriale',
+    desc: 'Pavimento normale, piastrellato o non adatto ad ancoraggio diretto',
+    note: 'Modelli C — con pedana',
+    color: 'slate',
   },
-  {
-    "id": "c35",
-    "codice": "13168",
-    "modello": "C3.5",
-    "descrizione": "Ponte 2 colonne con pedana. Portata superiore 3.500 Kg. 4 braccia triple per ottima presa su veicoli più grandi.",
-    "prezzoNetto": 0,
-    "portata": "3.500 Kg",
-    "portataKg": 3500,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van"
-    ],
-    "famiglia": "C3.5",
-    "noteTecniche": "H.Min 120mm - H.Max 1970mm. Larghezza portale 2700mm. 4 braccia triple 690→1325mm. 400/230V - 3.7kW. Tempo alzata 45\"",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c35xl",
-    "codice": "13191",
-    "modello": "C3.5 XL",
-    "descrizione": "Ponte 2 colonne con pedana a larghezza XL (3000mm). Ideale per veicoli più larghi o SUV grandi.",
-    "prezzoNetto": 0,
-    "portata": "3.500 Kg",
-    "portataKg": 3500,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "suv",
-      "van"
-    ],
-    "famiglia": "C3.5",
-    "noteTecniche": "H.Min 120mm - H.Max 1970mm. Larghezza portale 3000mm. 4 braccia triple 690→1325mm. 400/230V - 3.7kW.",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c4",
-    "codice": "13194",
-    "modello": "C4",
-    "descrizione": "Ponte 2 colonne con pedana portata 4.000 Kg. Ideale per SUV, furgoni leggeri e veicoli commerciali.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C4",
-    "noteTecniche": "H.Min 130mm - H.Max 1970mm. Larghezza portale 2700mm. 4 braccia triple 668→1341mm. 400/230V - 3.7kW. Tempo alzata 45\"",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c4xl",
-    "codice": "13198",
-    "modello": "C4 XL",
-    "descrizione": "Ponte 2 colonne con pedana a larghezza XL (3000mm). Ottimo per Van lunghi e fuoristrada grandi.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C4",
-    "noteTecniche": "H.Min 130mm - H.Max 1970mm. Larghezza portale 3000mm. 4 braccia triple 668→1341mm. 400/230V - 3.7kW.",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c5wagon",
-    "codice": "13176",
-    "modello": "C5 Wagon",
-    "descrizione": "Ponte 2 colonne con pedana SPECIFICO per grandi furgoni a passo lungo. Portata 5.000 Kg con bracci extra-lunghi.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C5",
-    "noteTecniche": "H.Min 150mm - H.Max 1970mm. Larghezza portale 3000mm. 4 braccia triple 855→1810mm. Specifico per grandi furgoni. 400/230V - 3+3kW.",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c5xlwagon",
-    "codice": "13201",
-    "modello": "C5 XL Wagon",
-    "descrizione": "Versione XL del C5 Wagon. Portale ancora più largo (3130mm) per furgoni extra-lunghi.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C5",
-    "noteTecniche": "H.Min 150mm - H.Max 2000mm. Larghezza portale 3130mm. 4 braccia triple 855→1810mm. 400/230V - 3+3kW.",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c55",
-    "codice": "13998",
-    "modello": "C5.5",
-    "descrizione": "Ponte 2 colonne con pedana portata 5.500 Kg. Per veicoli pesanti, fuoristrada grandi e truck leggeri.",
-    "prezzoNetto": 0,
-    "portata": "5.500 Kg",
-    "portataKg": 5500,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "van_lungo",
-      "truck"
-    ],
-    "famiglia": "C5.5",
-    "noteTecniche": "H.Min 110mm - H.Max 1910mm. Larghezza portale 2810mm. 4 braccia triple 705→1335mm. Doppio gioco supporti 60-100mm. 400/230V - 3+3kW.",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c55wagon",
-    "codice": "13988",
-    "modello": "C5.5 Wagon",
-    "descrizione": "C5.5 Wagon specifico per grandi furgoni a passo lungo. La massima portata con bracci extra-lunghi.",
-    "prezzoNetto": 0,
-    "portata": "5.500 Kg",
-    "portataKg": 5500,
-    "pavimentazione": "non_industriale",
-    "veicoli": [
-      "van_lungo",
-      "camper",
-      "truck"
-    ],
-    "famiglia": "C5.5",
-    "noteTecniche": "H.Min 155mm - H.Max 2000mm. Larghezza portale 2810mm. 4 braccia triple 823→1505mm. 400/230V - 3+3kW.",
-    "categoria": "2 Col. con Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c32s",
-    "codice": "13120SE",
-    "modello": "C3.2S",
-    "descrizione": "Ponte 2 colonne SENZA pedana (pavimento industriale). Sistema ILC Intelligent Lift Control. Colonne SlenderTec Made in Germany.",
-    "prezzoNetto": 0,
-    "portata": "3.200 Kg",
-    "portataKg": 3200,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "utilitaria",
-      "car",
-      "suv"
-    ],
-    "famiglia": "C3.2S",
-    "noteTecniche": "H.Min 100mm - H.Max 1960mm. Larghezza portale 2700mm. Bracci doppi 710→1050mm. 400/230V - 2.2+2.2kW. Sistema ILC. Reversibilità totale.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c32s_confort",
-    "codice": "13120SC",
-    "modello": "C3.2S Confort",
-    "descrizione": "C3.2S senza pedana versione Confort con 2 braccia triple e 2 braccia doppie.",
-    "prezzoNetto": 0,
-    "portata": "3.200 Kg",
-    "portataKg": 3200,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "utilitaria",
-      "car",
-      "suv",
-      "van"
-    ],
-    "famiglia": "C3.2S",
-    "noteTecniche": "H.Min 100mm - H.Max 1960mm. 2 braccia triple (597→1122mm) + 2 braccia doppie. Sistema ILC. 400/230V - 2.2+2.2kW.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c35s",
-    "codice": "13169",
-    "modello": "C3.5S",
-    "descrizione": "Ponte 2 colonne SENZA pedana 3.500 Kg. Sistema ILC. Tripla sfilata di serie. Ideale per officina professionale.",
-    "prezzoNetto": 0,
-    "portata": "3.500 Kg",
-    "portataKg": 3500,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van"
-    ],
-    "famiglia": "C3.5S",
-    "noteTecniche": "H.Min 100mm - H.Max 1970mm. Larghezza portale 2700mm. 4 braccia triple 690→1325mm. Sistema ILC. 400/230V - 3+3kW.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c35s_xl",
-    "codice": "13192",
-    "modello": "C3.5S XL",
-    "descrizione": "C3.5S senza pedana a larghezza portale XL (3000mm). Per veicoli più larghi senza pedana.",
-    "prezzoNetto": 0,
-    "portata": "3.500 Kg",
-    "portataKg": 3500,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "suv",
-      "van"
-    ],
-    "famiglia": "C3.5S",
-    "noteTecniche": "H.Min 100mm - H.Max 1970mm. Larghezza portale 3000mm. 4 braccia triple 690→1325mm. Sistema ILC.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c4s",
-    "codice": "13194S",
-    "modello": "C4S",
-    "descrizione": "Ponte 2 colonne SENZA pedana 4.000 Kg. Sistema ILC. La scelta professionale per officine con pavimento industriale.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C4S",
-    "noteTecniche": "H.Min 100mm - H.Max 1970mm. Larghezza portale 2700mm. 4 braccia triple 668→1341mm. Sistema ILC. 400/230V - 3+3kW.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c4s_xl",
-    "codice": "13198S",
-    "modello": "C4S XL",
-    "descrizione": "C4S senza pedana larghezza XL (3000mm). Per Van e fuoristrada larghi in officine con pavimento industriale.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C4S",
-    "noteTecniche": "H.Min 100mm - H.Max 1970mm. Larghezza portale 3000mm. 4 braccia triple 668→1341mm. Sistema ILC.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c5s_wagon",
-    "codice": "13177",
-    "modello": "C5S Wagon",
-    "descrizione": "Ponte 2 colonne SENZA pedana SPECIFICO grandi furgoni. 5.000 Kg con bracci extra-lunghi. Pavimento industriale.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C5S",
-    "noteTecniche": "H.Min 145mm - H.Max 1970mm. Larghezza portale 3000mm. 4 braccia triple 855→1810mm. Sistema ILC. 400/230V - 3+3kW.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c55s",
-    "codice": "13998S",
-    "modello": "C5.5S",
-    "descrizione": "Ponte 2 colonne SENZA pedana 5.500 Kg. Massima portata per veicoli pesanti su pavimento industriale.",
-    "prezzoNetto": 0,
-    "portata": "5.500 Kg",
-    "portataKg": 5500,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "van_lungo",
-      "truck"
-    ],
-    "famiglia": "C5.5S",
-    "noteTecniche": "H.Min 105mm - H.Max 1930mm. Larghezza portale 2810mm. 4 braccia triple 705→1335mm. Doppio gioco supporti 60-100mm. Sistema ILC.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c55s_wagon",
-    "codice": "13988S",
-    "modello": "C5.5S Wagon",
-    "descrizione": "C5.5S Wagon senza pedana per grandi furgoni. La soluzione professionale definitiva per truck e van lunghi.",
-    "prezzoNetto": 0,
-    "portata": "5.500 Kg",
-    "portataKg": 5500,
-    "pavimentazione": "industriale",
-    "veicoli": [
-      "van_lungo",
-      "camper",
-      "truck"
-    ],
-    "famiglia": "C5.5S",
-    "noteTecniche": "H.Min 150mm - H.Max 1970mm. Larghezza portale 2810mm. 4 braccia triple 758→1505mm. Sistema ILC. 400/230V - 3+3kW.",
-    "categoria": "2 Col. senza Pedana",
-    "tipo_sollevatore": "2_colonne",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c430",
-    "codice": "13335",
-    "modello": "C430",
-    "descrizione": "Ponte 4 colonne pedane piane 3.2 Tn. Pedane rinforzate con doppi profili a doppia T e doppie pulegge. Il più basso sul mercato.",
-    "prezzoNetto": 0,
-    "portata": "3.200 Kg",
-    "portataKg": 3200,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "utilitaria",
-      "car",
-      "suv"
-    ],
-    "famiglia": "C430",
-    "noteTecniche": "H.Min 135mm - H.Max 1850mm. Pedane 4110mm. Larghezza 2322mm. Distanza colonne 2470mm. Peso 700 Kg. 400V 3kW / 230V mono 2.2kW. Tempo alzata 35\". Doppia sicurezza meccanica e pneumatica.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c440",
-    "codice": "13340",
-    "modello": "C440",
-    "descrizione": "Ponte 4 colonne pedane piane 4 Tn. Pedane rinforzate, la versione standard di medio-alta portata per officina generica.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C440",
-    "noteTecniche": "H.Min 135mm - H.Max 1750mm. Pedane 4335mm. Larghezza 2580mm. Distanza colonne 2325mm. Peso 840 Kg. 400V 3kW / 230V mono 2.2kW. Tempo alzata 35\". Doppia sicurezza.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c440_motatl",
-    "codice": "13353A",
-    "modello": "C440 MOT ATL",
-    "descrizione": "C440 con provagiochi idraulici integrati nelle pedane. Versione per revisioni e controlli motorizzazione ATL.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van"
-    ],
-    "famiglia": "C440",
-    "noteTecniche": "H.Min 135mm. Pedane 4335mm con provagiochi integrato. Peso 950 Kg. Omologato MCTC-Net / ATL. 400V 3kW. Doppia sicurezza meccanica e pneumatica.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c443",
-    "codice": "13381",
-    "modello": "C443",
-    "descrizione": "Ponte 4 colonne 4 Tn nuova generazione (modello NEW). Pedane 4800mm. Rampe SPORT disponibili (Rif. 33730 - 1800mm).",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C443",
-    "noteTecniche": "H.Min 135mm. Pedane 4800mm. Larghezza 3000mm. Distanza colonne 3410mm. Peso 1150 Kg. 400V 3kW. Tempo alzata 40\". Versione rinforzata.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "NEW"
-  },
-  {
-    "id": "c450_motatl",
-    "codice": "13355A",
-    "modello": "C450 MOT ATL",
-    "descrizione": "Ponte 4 colonne 5 Tn con provagiochi integrati. Ideale per centri revisioni e officine che fanno controllo giochi.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "suv",
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C450",
-    "noteTecniche": "H.Min 180mm. Pedane 5325mm con provagiochi integrato. Larghezza 3240mm. Peso 1500 Kg. Omologato MCTC-Net / ATL. 400V 3kW. Rampe SPORT Rif. 33730 disponibili.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c450xl",
-    "codice": "13376",
-    "modello": "C450 XL",
-    "descrizione": "Ponte 4 colonne 5 Tn versione XL, pedane 5700mm per passo lungo. Per van, camper e fuoristrada grandi.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C450",
-    "noteTecniche": "H.Min 135mm - H.Max 2000mm. Pedane 5700mm. Larghezza 3000mm. Distanza colonne 2410mm. Peso 1350 Kg. 400V 3kW. Tempo alzata 40\". Rampe SPORT Rif. 33750 disponibili.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c450xl_motatl",
-    "codice": "13376A",
-    "modello": "C450 XL MOT ATL",
-    "descrizione": "C450 XL con provagiochi integrati. Versione XL (pedane 5700mm) per veicoli passo lungo con controllo giochi.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C450",
-    "noteTecniche": "H.Min 180mm - H.Max 2000mm. Pedane 5700mm con provagiochi integrato. Larghezza 3000mm. Peso 1600 Kg. Omologato ATL. 400V 3kW.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c450_toro",
-    "codice": "13351FIR",
-    "modello": "C450 TORO",
-    "descrizione": "Ponte 4 colonne 5 Tn con incasso nel pavimento CONSIGLIATO. Soluzione a scomparsa ad opera civile per massima fruibilità del box.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C450",
-    "noteTecniche": "H.Min 135mm (incassato a pavimento). Pedane 4912mm. Larghezza 2610mm. Peso 1400 Kg. 400V 3kW. Richiede piano di opera civile per incastro (calcestruzzo C20/25). Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Speciale"
-  },
-  {
-    "id": "c450plus",
-    "codice": "13378",
-    "modello": "C450+",
-    "descrizione": "Ponte 4 colonne 5.5 Tn versione potenziata. Pedane 5200mm. La massima portata della serie standard.",
-    "prezzoNetto": 0,
-    "portata": "5.500 Kg",
-    "portataKg": 5500,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van_lungo",
-      "camper",
-      "truck"
-    ],
-    "famiglia": "C450+",
-    "noteTecniche": "H.Min 135mm - H.Max 2000mm. Pedane 5200mm. Larghezza 2780mm. Distanza colonne 2410mm. Peso 1300 Kg. 400V 3kW. Tempo alzata 40\". Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. Standard",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "standard",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c432",
-    "codice": "13337",
-    "modello": "C432",
-    "descrizione": "Ponte 4 colonne 3.2 Tn per ASSETTO RUOTE. Piane oscillanti posteriori con sistema a rulli, sedi anteriori per piatti rotanti.",
-    "prezzoNetto": 0,
-    "portata": "3.200 Kg",
-    "portataKg": 3200,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "utilitaria",
-      "car",
-      "suv"
-    ],
-    "famiglia": "C432",
-    "noteTecniche": "H.Min 180mm - H.Max 1850mm. Pedane 4110mm. Sedi per piatti rotanti 50x50x5cm e 40x40x4cm. Piane oscillanti su rulli con blocco manuale. Peso 820 Kg. 400V 3kW. Tempo 35\".",
-    "categoria": "4 Col. Assetto",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "assetto",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c442",
-    "codice": "13442",
-    "modello": "C442",
-    "descrizione": "Ponte 4 colonne 4 Tn per ASSETTO RUOTE. Predisposizione completa per allineamento: piatti rotanti + piane oscillanti.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C442",
-    "noteTecniche": "H.Min 190mm - H.Max 1750mm. Pedane 4335mm. Piane oscillanti a rulli con blocco manuale. Sedi per piatti rotanti 50x50/40x40. Peso 1000 Kg. 400V 3kW. Tempo 35\".",
-    "categoria": "4 Col. Assetto",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "assetto",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c445",
-    "codice": "13380",
-    "modello": "C445",
-    "descrizione": "Ponte 4 colonne 4 Tn ASSETTO nuova generazione (modello NEW). Pedane 4800mm per veicoli più lunghi.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg",
-    "portataKg": 4000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C445",
-    "noteTecniche": "H.Min 185mm. Pedane 4800mm. Larghezza 3000mm. Peso 1450 Kg. Piane oscillanti a rulli + sedi piatti rotanti. 400V 3kW. Tempo 40\". Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. Assetto",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "assetto",
-    "badge": "NEW"
-  },
-  {
-    "id": "c455_motatl",
-    "codice": "13354A",
-    "modello": "C455 MOT ATL",
-    "descrizione": "Ponte 4 colonne 5 Tn ASSETTO con provagiochi integrati. Soluzione completa per centri revisione + allineamento.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "suv",
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C455",
-    "noteTecniche": "H.Min 185mm. Pedane 5325mm con provagiochi integrato + predisposizione assetto. Peso 1600 Kg. Omologato ATL. 400V 3kW. Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. Assetto",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "assetto",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c455xl",
-    "codice": "13377",
-    "modello": "C455 XL",
-    "descrizione": "Ponte 4 colonne 5 Tn XL per ASSETTO. Pedane 5700mm per veicoli passo lungo con controllo geometria.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C455",
-    "noteTecniche": "H.Min 185mm - H.Max 2000mm. Pedane 5700mm. Piane oscillanti + piatti rotanti. Peso 1700 Kg. 400V 3kW. Rampe SPORT Rif. 33750.",
-    "categoria": "4 Col. Assetto",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "assetto",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c455xl_motatl",
-    "codice": "13377ANY",
-    "modello": "C455 XL MOT ATL",
-    "descrizione": "C455 XL con provagiochi integrati. Versione XL per assetto + controllo giochi su veicoli passo lungo.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C455",
-    "noteTecniche": "H.Min 180mm. Pedane 5700mm con provagiochi + predisposizione assetto. Peso 1675 Kg. Omologato ATL. 400V 3kW.",
-    "categoria": "4 Col. Assetto",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "assetto",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c455plus",
-    "codice": "13379",
-    "modello": "C455+",
-    "descrizione": "Ponte 4 colonne 5.5 Tn ASSETTO versione potenziata. Per veicoli pesanti con esigenze di allineamento geometria.",
-    "prezzoNetto": 0,
-    "portata": "5.500 Kg",
-    "portataKg": 5500,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van_lungo",
-      "camper",
-      "truck"
-    ],
-    "famiglia": "C455+",
-    "noteTecniche": "H.Min 185mm - H.Max 2000mm. Pedane 5200mm. Piane oscillanti + piatti rotanti. Peso 1600 Kg. 400V 3kW. Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. Assetto",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "assetto",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c443h",
-    "codice": "13370",
-    "modello": "C443H",
-    "descrizione": "Ponte 4 colonne 4 Tn con SOLLEVATORE ELETTROIDRAULICO INTEGRATO 3.5 Tn. Permette sollevamento ruote libere su ponte già alzato.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg (+ 3.500 Kg ausiliario)",
-    "portataKg": 4000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C443H",
-    "noteTecniche": "H.Min 195mm - H.Max 2000mm. Pedane 4800mm. Sollevatore aux elettroidraulico 3.500 Kg integrato (H.Max 500mm). Peso 1650 Kg. 400V 3kW. Tempo 40\". Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. con Sollevatore",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "con_sollevatore",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c445h",
-    "codice": "13359",
-    "modello": "C445H",
-    "descrizione": "Ponte 4 colonne 4 Tn ASSETTO con sollevatore 3.5 Tn integrato. Combinazione assetto + ruote libere in un unico ponte.",
-    "prezzoNetto": 0,
-    "portata": "4.000 Kg (+ 3.500 Kg ausiliario)",
-    "portataKg": 4000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "car",
-      "suv",
-      "van",
-      "camper"
-    ],
-    "famiglia": "C445H",
-    "noteTecniche": "H.Min 195mm - H.Max 2000mm. Pedane 4800mm con predisposizione assetto. Sollevatore aux 3.500 Kg integrato. Peso 1950 Kg. 400V 3kW. Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. con Sollevatore",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "con_sollevatore",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c450h",
-    "codice": "13371",
-    "modello": "C450H",
-    "descrizione": "Ponte 4 colonne 5 Tn con sollevatore integrato 3.5 Tn. Pedane 5200mm, per van e camper con ruote libere.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg (+ 3.500 Kg ausiliario)",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C450H",
-    "noteTecniche": "H.Min 195mm - H.Max 2000mm. Pedane 5200mm. Sollevatore aux 3.500 Kg integrato (H.Max 500mm). Peso 1800 Kg. 400V 3kW. Rampe SPORT Rif. 33730.",
-    "categoria": "4 Col. con Sollevatore",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "con_sollevatore",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c455h",
-    "codice": "13367",
-    "modello": "C455H",
-    "descrizione": "Ponte 4 colonne 5 Tn ASSETTO + sollevatore integrato 3.5 Tn. Configurazione top: assetto, ruote libere e sollevamento pesante.",
-    "prezzoNetto": 0,
-    "portata": "5.000 Kg (+ 3.500 Kg ausiliario)",
-    "portataKg": 5000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "van",
-      "van_lungo",
-      "camper"
-    ],
-    "famiglia": "C455H",
-    "noteTecniche": "H.Min 195mm - H.Max 2000mm. Pedane 5200mm con predisposizione assetto + provagiochi opzionali. Sollevatore aux 3.500 Kg. Peso 2100 Kg. 400V 3kW.",
-    "categoria": "4 Col. con Sollevatore",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "con_sollevatore",
-    "badge": "Top"
-  },
-  {
-    "id": "c470",
-    "codice": "13333",
-    "modello": "C470",
-    "descrizione": "Ponte 4 colonne INDUSTRIALE 7 Tn. Per veicoli commerciali pesanti. Sistema doppio cavo/puleggia per massima sicurezza.",
-    "prezzoNetto": 0,
-    "portata": "7.000 Kg",
-    "portataKg": 7000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "camper",
-      "truck"
-    ],
-    "famiglia": "C470",
-    "noteTecniche": "H.Min 225mm - H.Max 1750mm. Pedane 6240mm. Larghezza 2965mm. Distanza colonne 2360mm. Peso 2000 Kg. 400V 3kW. Tempo 45\". Sistema doppio cavo/puleggia. Rampe SPORT Rif. 35765.",
-    "categoria": "4 Col. Industriale",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "industriale",
-    "badge": "Consigliato"
-  },
-  {
-    "id": "c472",
-    "codice": "13339",
-    "modello": "C472",
-    "descrizione": "Ponte 4 colonne INDUSTRIALE 7 Tn versione estesa (pedane 7580mm). Adatto anche a predisposizione assetto per truck.",
-    "prezzoNetto": 0,
-    "portata": "7.000 Kg",
-    "portataKg": 7000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "truck"
-    ],
-    "famiglia": "C472",
-    "noteTecniche": "H.Min 265mm - H.Max 1750mm. Pedane 6240mm / totale 7580mm. Larghezza 2965mm. Peso 2300 Kg. 400V 3kW. Sistema doppio cavo/puleggia. Predisposizione assetto truck (piane oscillanti + piatti rotanti).",
-    "categoria": "4 Col. Industriale",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "industriale",
-    "badge": "Alternativa"
-  },
-  {
-    "id": "c4100",
-    "codice": "13331",
-    "modello": "C4100",
-    "descrizione": "Ponte 4 colonne INDUSTRIALE 12 Tn. Massima portata per truck pesanti, autobus, veicoli industriali grandi.",
-    "prezzoNetto": 0,
-    "portata": "12.000 Kg",
-    "portataKg": 12000,
-    "pavimentazione": "universale",
-    "veicoli": [
-      "truck"
-    ],
-    "famiglia": "C4100",
-    "noteTecniche": "H.Min 265mm - H.Max 2477mm. Pedane 7000mm. Larghezza 3200mm. Peso 3200 Kg. 400V 3kW. Sistema doppio cavo/puleggia. Rampe SPORT Rif. 40520 (2000mm).",
-    "categoria": "4 Col. Industriale",
-    "tipo_sollevatore": "4_colonne",
-    "impiego": "industriale",
-    "badge": "Top"
+];
+
+// Tipologie di impiego — solo per 4 colonne
+export const IMPIEGO_TYPES_4COL = [
+  { id: 'standard',        label: 'Standard — Sollevamento',      icon: '🛠️' },
+  { id: 'assetto',         label: 'Assetto Ruote',                icon: '📐' },
+  { id: 'con_sollevatore', label: 'Con Sollevatore Integrato',    icon: '⬆️' },
+  { id: 'industriale',     label: 'Industriale — Truck',          icon: '🚛' },
+];
+
+// Portata minima richiesta per tipologia veicolo (4 colonne)
+export const VEHICLE_MIN_KG = {
+  utilitaria: 1400,
+  car:        2000,
+  suv:        2800,
+  van:        3500,
+  van_lungo:  4000,
+  camper:     4500,
+  truck:      5500,   // truck leggeri coperti da C450+/C455+ (5.5Tn)
+};
+
+// Seleziona i prodotti 2 colonne compatibili
+export function selectProducts2Col(products, pavimentazione, veicolo) {
+  if (!pavimentazione || !veicolo) return [];
+  return products
+    .filter(p =>
+      (p.tipo_sollevatore === '2_colonne' || !p.tipo_sollevatore) &&
+      p.pavimentazione === pavimentazione &&
+      p.veicoli.includes(veicolo)
+    )
+    .sort((a, b) => (a.prezzoNetto || 0) - (b.prezzoNetto || 0));
+}
+
+// Seleziona i prodotti 4 colonne compatibili
+export function selectProducts4Col(products, impiego, veicolo) {
+  if (!impiego || !veicolo) return [];
+  const minKg = VEHICLE_MIN_KG[veicolo] || 0;
+  return products
+    .filter(p =>
+      p.tipo_sollevatore === '4_colonne' &&
+      p.impiego === impiego &&
+      p.veicoli.includes(veicolo) &&
+      p.portataKg >= minKg
+    )
+    .sort((a, b) => {
+      const ap = a.prezzoNetto || 0, bp = b.prezzoNetto || 0;
+      if (ap === 0 && bp === 0) return a.portataKg - b.portataKg;
+      if (ap === 0) return 1;
+      if (bp === 0) return -1;
+      return ap - bp;
+    });
+}
+
+// Back-compat: vecchia API per ponti 2 colonne
+export function selectProducts(products, pavimentazione, veicolo) {
+  return selectProducts2Col(products, pavimentazione, veicolo);
+}
+
+// Genera la motivazione tecnica per la proposta (generica, 2 o 4 col)
+export function generateMotivazione(product, veicolo, pavimentazione) {
+  const veicoloInfo = VEHICLE_TYPES.find(v => v.id === veicolo);
+  const is4Col = product.tipo_sollevatore === '4_colonne';
+
+  if (is4Col) {
+    return `${product.modello} con portata ${product.portata} (impiego: ${product.impiego}) è indicato per ${veicoloInfo?.label}. Le pedane piane consentono al veicolo di salire con le ruote senza vincoli sui punti di presa.`;
   }
-]
+
+  const pav = pavimentazione === 'industriale'
+    ? 'Il pavimento industriale consente l\'installazione senza pedana, ottimizzando lo spazio in officina.'
+    : 'La configurazione con pedana è indicata per pavimenti standard senza ancoraggio diretto.';
+
+  return `${product.modello} con portata ${product.portata} è la soluzione ottimale per ${veicoloInfo?.label}. ${pav}`;
+}
